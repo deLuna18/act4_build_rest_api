@@ -19,9 +19,9 @@ userRouter.get("/users", async (req: Request, res : Response) => {
     }
 })
 
-userRouter.get("/user/:id", async (req: Response)=> {
+userRouter.get("/user/:id", async (req: Request, res: Response)=> {
     try{
-        const user: UnitUser = await database.findOne("id": req.params.id)
+        const user: UnitUser = await database.findOne(req.params.id)
 
         if (!user) {
             return res.status(StatusCodes.NOT_FOUND).json({error : `User not found!`})
@@ -81,7 +81,7 @@ userRouter.post("/login", async(req: Request, res: Response)=> {
     }
 })
 
-userRouter.put("/user/:id", async (req: Response)=> {
+userRouter.put('/user/:id', async (req: Request, res : Response)=> {
     try{
         const {username, email, password} = req.body
 
@@ -95,11 +95,29 @@ userRouter.put("/user/:id", async (req: Response)=> {
             return res.status(401).json({error : `No user with id ${req.params.id}`})
         }
 
-        const updateUser = await database.update({req.params.id}, req.body)
+        const updateUser = await database.update((req.params.id), req.body)
 
         return res.status(201).json({updateUser})
     } catch (error) {
         return res.status(500).json({error})
+    }
+})
+
+userRouter.delete("/user/:id", async (req: Request, res : Response)=> {
+    try{
+        const id = (req.params.id)
+
+        const user = await database.findOne(id)
+
+        if (!user) {
+            return res.status(StatusCodes.NOT_FOUND).json({error : `User does not exist`})
+        }
+
+        await database.remove(id)
+
+        return res.status(StatusCodes.OK).json({msg: "User deleted"})
+    } catch (error) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error})
     }
 })
 
